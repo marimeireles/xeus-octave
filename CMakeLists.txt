@@ -30,6 +30,30 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_FIND_ROOT_PATH ${CMAKE_PREFIX_PATH})
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+set(CMAKE_FIND_FRAMEWORK NEVER)
+set(CMAKE_FIND_APPBUNDLE NEVER)
+set(CMAKE_PROGRAM_PATH ${CMAKE_PREFIX_PATH})
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+################################################################################
+# VERSIONING
+################################################################################
+
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/xeus-octave/xeus_octave_config.hpp" xoctave_version_defines
+     REGEX "#define XOCTAVE_VERSION_(MAJOR|MINOR|PATCH)")
+foreach(ver ${xoctave_version_defines})
+    if(ver MATCHES "#define XOCTAVE_VERSION_(MAJOR|MINOR|PATCH) +([^ ]+) *$")
+        set(XOCTAVE_VERSION_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}" CACHE INTERNAL "")
+    endif()
+endforeach()
+set(${PROJECT_NAME}_VERSION
+${XOCTAVE_VERSION_MAJOR}.${XOCTAVE_VERSION_MINOR}.${XOCTAVE_VERSION_PATCH})
+message(STATUS "Building xeus-octave v${${PROJECT_NAME}_VERSION}")
+
 ################################################################################
 # FETCH LIBRARIES
 ################################################################################
@@ -143,7 +167,7 @@ target_link_libraries(${EXECUTABLE_NAME} PkgConfig::octinterp)
 target_link_libraries(${EXECUTABLE_NAME} PNG::PNG)
 
 if (NOTEBOOK_TOOLKIT_RENDER_TYPE STREQUAL "GPU")
-  find_package(OpenGL REQUIRED)
+  find_package(OpenGL REQUIRED COMPONENTS OpenGL EGL)
   pkg_check_modules(glfw3 REQUIRED IMPORTED_TARGET glfw3)
   set(NOTEBOOK_TOOLKIT_ENABLED ON)
   target_link_libraries(${EXECUTABLE_NAME} PkgConfig::glfw3 OpenGL::GL)
